@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "body-parser": "^1.17.2",
+    "child-process-promise": "^2.2.1",
     "compression": "^1.6.2",
     "cors": "^2.8.3",
     "feathers": "^2.1.3",
@@ -35,6 +36,7 @@
     "feathers-errors": "^2.8.1",
     "feathers-hooks": "^2.0.1",
     "feathers-hooks-common": "^3.5.3",
+    "feathers-memory": "^1.1.0",
     "feathers-rest": "^1.7.3",
     "feathers-socketio": "^2.0.0",
     "helmet": "^3.6.1",

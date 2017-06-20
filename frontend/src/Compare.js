@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+// TODO: Figure this out:
+// import feathers from 'feathers/client';
+import resemble from 'resemblejs'
 
 import styles from './Compare.css'
 
@@ -17,13 +20,21 @@ export default class Compare extends Component {
         // Class variables:
         this.lastImage
         this.latestImage
+        this.diffImage = new Image()
+
         this.state = {
-            compareCount: 0
+            compareCount: 0,
+            images: [],
+            differences: []
         };
+        this.allImages
+        this.differences
 
         this.configureCanvas = this.configureCanvas.bind(this);
         this.updateImages = this.updateImages.bind(this);
         this.configureCanvas = this.configureCanvas.bind(this);
+        this.getImageJson = this.getImageJson.bind(this);
+        this.buildImagePath = this.buildImagePath.bind(this);
 
     }
 
@@ -32,29 +43,10 @@ export default class Compare extends Component {
         this.lastImage = this.refs.lastImage
         this.latestImage = this.refs.latestImage
 
-        this.configureCanvas();
-        // this.loadAndCompare();
-        window.setInterval(this.updateImages, 1000);
-    }
-
-    render() {
-        return (
-            <div>
-                <div className='compares'>Number of image comparisons done: {this.state.compareCount}</div>
-                <canvas ref='canvas'></canvas>
-
-                <div className='images'>
-                    <img ref='lastImage' src='capture/files/last.jpg'/>
-                    <img ref='latestImage'src='capture/files/latest.jpg'/>
-                </div>
-                
-                <div className="foundDiffs">
-                    Found images that had differences:
-                    <div className="all">
-                    </div>
-                </div>
-            </div>
-        )
+        // this.configureCanvas();
+        this.getImageJson();
+        // window.setInterval(this.updateImages, 1000);
+        window.setTimeout(this.updateImages, 1000);
     }
 
     configureCanvas() {
@@ -67,27 +59,101 @@ export default class Compare extends Component {
         ctx.fill()
     }
 
-    compareImages() {
+    compareImages(latestImage, lastImage) {
         console.log('comparing images');
+        var diff = resemble(lastImage).compareTo(latestImage).ignoreNothing().onComplete((data) => {
+            console.log(data);
+            this.diffImage = new Image();
+		    this.diffImage.src = data.getImageDataUrl();
+
+            if(data.misMatchPercentage == 0){
+                console.log('Images are the same...');
+            } else {
+                console.warn('Images are different!!');
+            }
+
+            this.setState((prevState, props) => {
+                let newDiff = prevState.differences
+                newDiff.push(latestImage);
+                return Object.assign(prevState,
+                    { compareCount: prevState.compareCount + 1 },
+                    { differences: newDiff}
+                );
+            })
+        });
     }
 
     updateImages() {
-        this.setState((prevState, props) => {
-            return {compareCount: prevState.compareCount + 1};
-        })
+        this.getImageJson()
+            .then((images) => {
+                this.setState((prevState, props) => Object.assign(prevState, {images} ))
+                return images;
+            })
+            .then((images) => {
+                this.compareImages(this.buildImagePath(images[0]), this.buildImagePath(images[1]));
+                return images;
+            });
+            // .then((images) => {
+            //     // draw images to canvas:
+            //     ctx.drawImage(images[0], 0, 0);
+            //     ctx.drawImage(images[1], 0, 0);
+            // });
+    }
 
-        // draw images to canvas:
-        ctx.drawImage(this.lastImage, 0, 0);
-        ctx.drawImage(this.latestImage, 0, 0);
+    buildImagePath(filename) {
+        return 'capture/files/' + filename;
     }
 
     getImageJson() {
-        axios.get('images.json')
+        return axios.get('http://localhost:3030/images/0')
             .then(res => {
-                const posts = res.data.data.children.map(obj => obj.data);
-                this.setState({ posts });
+                // console.log(res);
+                const images = res.data.images;
+                console.log('fetched images', JSON.stringify(images,0,2));
+                return images; 
             });
     }
 
+    render() {
+        this.allImages = this.state.images.map((imageName, idx) => {
+            // console.log('list item: ', imageName);
+            let url = this.buildImagePath(imageName);
+            return (
+                <li key={idx}><a href={url}>{url}</a></li>
+            )
+        });
+        this.differences = this.state.differences.map((imageName, idx) => {
+            // console.log('list item: ', imageName);
+            let url = this.buildImagePath(imageName);
+            return (
+                <li key={idx}><a href={url}>{url}</a></li>
+            )
+        });
+        return (
+            <div>
+                <div className='compares'>Number of image comparisons done: {this.state.compareCount}</div>
+                {/*<canvas ref='canvas'></canvas>*/}
+
+                <div className='images'>
+                    <img ref='lastImage' src='capture/files/last.jpg'/>
+                    <img ref='latestImage'src='capture/files/latest.jpg'/>
+                </div>
+
+                <div className='diffImage'>
+                    Diff image: <br/>
+                    <img src={this.diffImage.src}/>
+                </div>
+                
+                <div className="foundDiffs">
+                    Images that had differences:
+                    <ul>{this.differences}</ul>
+                </div>
+                <div className='allImages'>
+                    All images:
+                    <ul>{this.allImages}</ul>
+                </div>
+            </div>
+        )
+    }
  
 }

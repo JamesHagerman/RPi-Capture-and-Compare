@@ -1,12 +1,11 @@
 #!/usr/bin/python
 
-import sched, time, os
+import sched
+import time
+import os
 import datetime
-import json
 
 #import ftplib
-
-
 
 # This just sets up the scheduler:
 s = sched.scheduler(time.time, time.sleep)
