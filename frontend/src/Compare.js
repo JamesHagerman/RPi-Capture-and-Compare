@@ -66,15 +66,17 @@ export default class Compare extends Component {
             this.diffImage = new Image();
 		    this.diffImage.src = data.getImageDataUrl();
 
-            if(data.misMatchPercentage == 0){
-                console.log('Images are the same...');
-            } else {
-                console.warn('Images are different!!');
-            }
+            
 
             this.setState((prevState, props) => {
                 let newDiff = prevState.differences
-                newDiff.push(latestImage);
+                if(data.misMatchPercentage == 0){
+                    console.log('Images are the same...');
+                } else {
+                    console.warn('Images are different!!');
+                    newDiff.push(latestImage);
+                }
+                
                 return Object.assign(prevState,
                     { compareCount: prevState.compareCount + 1 },
                     { differences: newDiff}
