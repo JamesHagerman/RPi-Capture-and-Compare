@@ -61,7 +61,7 @@ export default class Compare extends Component {
 
     compareImages(latestImage, lastImage) {
         console.log('comparing images');
-        var diff = resemble(lastImage).compareTo(latestImage).ignoreNothing().onComplete((data) => {
+        var diff = resemble(lastImage).compareTo(latestImage).ignoreColors().onComplete((data) => {
             console.log(data);
             this.diffImage = new Image();
 		    this.diffImage.src = data.getImageDataUrl();
