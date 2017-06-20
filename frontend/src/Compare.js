@@ -45,8 +45,8 @@ export default class Compare extends Component {
 
         // this.configureCanvas();
         this.getImageJson();
-        // window.setInterval(this.updateImages, 1000);
-        window.setTimeout(this.updateImages, 1000);
+        window.setInterval(this.updateImages, 5000);
+        // window.setTimeout(this.updateImages, 1000);
     }
 
     configureCanvas() {
